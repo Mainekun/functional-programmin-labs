@@ -5,6 +5,8 @@
 (defun eg2- () '((1 2) (2 3) (2 4) (3 4) (3 6) (4 1) (4 5) (4 6) (5 1) (5 6) (6 1) (6 2)))
 (defun vg2 () '(1 2 3 4 5 6))
 
+(defun pg2 () '(((1 2) (2 4) (4 6) (6 1)) ((1 2) (2 4) (4 5) (5 6) (6 1)) ((1 2) (2 4) (4 5) (5 1)) ((1 2) (2 4) (4 1)) ((1 2) (2 3) (3 6) (6 1)) ((1 2) (2 3) (3 4) (4 6) (6 1)) ((1 2) (2 3) (3 4) (4 5) (5 6) (6 1)) ((1 2) (2 3) (3 4) (4 5) (5 1)) ((1 2) (2 3) (3 4) (4 1))))
+
 ;;; modification of 'last' - returns last element (not in list!)
 (defun llast (arr) 
 	(declare (type list arr))
@@ -69,17 +71,52 @@
 	(fcm2 vi vc (remove vc va) (find-incidents vc ea) ea)
 )
 
-;;; delete duplicates
-(defun ddc (ps)
+(defun fcm (va vs ei ea)
+	(cond
+		((null vs) '())
+		(t (append (fcm1 (car vs) (car vs) va ei ea) (fcm va (cdr vs) ei ea) ))
+	)
+)
+
+;;; delete non cycles
+(defun dnc (ps)
 	(cond
 		((null ps) nil)
 		((= (caar (car ps)) (cadar (last (car ps)))) 
-		 (cons (car ps) (ddc (cdr ps))))
-		(t (ddc (cdr ps)))
+		 (cons (car ps) (dnc (cdr ps))))
+		(t (dnc (cdr ps)))
+	)
+)
+
+(defun rot (p) 
+	(append (cdr p) (list (car p)))
+)
+
+(defun is-rot (p pc i) 
+	(cond
+		((= i 0) nil)
+		((equal p pc) t)
+		((/= (length p) (length pc)) nil)
+		(t (is-rot p (rot pc) (1- i)))
+	)
+)
+
+(defun not-in (p acc) 
+	(cond
+		((null acc) t)
+		((is-rot (car acc) p (length p)) nil)
+		(t (not-in p (cdr acc)))
 	)
 )
 
 ;;; delete rotations
+(defun ddr (ps &optional (acc nil))
+	(cond
+		((null ps) acc)
+		((not-in (car ps) acc) (ddr (cdr ps) (cons (car ps) acc)))
+		(t (ddr (cdr ps) acc))
+	)
+)
 
 (defun pr (a)
 	(cond
