@@ -149,8 +149,40 @@
 	(unpack-by-b l (add0n (ritob n) (length l)))
 )
 
+(defun addacc (b)
+	(cond
+		((null b) 0)
+		(t (+ (car b) (addacc (cdr b))))
+	)
+)
+
+(defun has-isec (a b)
+	(cond
+		((null a) nil)
+		((member (car a) b) t)
+		(t (has-isec (cdr a) b))
+	)
+)
+
+(defun member-of-all (ps es)
+	(cond
+		((null ps) t)
+		((has-isec es (car ps)) (member-of-all (cdr ps) es))
+		(t nil)
+	)
+)
+
+(defun solrec (ps es k n &optional (i 1))
+	(cond
+		((= i n) nil)
+		((/= (addacc (itob i) ) k) (solrec ps es k n (1+ i)))
+		((member-of-all ps (unpbn es i)) (unpbn es i))
+		(t (solrec ps es k n (1+ i)))
+	)
+)
+
 (defun solution (vs es k)
-	; (solrec (fcm vs vs es es) k)
+	(solrec (fcm vs vs es es) es k (expt 2 (length es)))
 )
 
 (defun pr (a)
