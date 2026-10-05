@@ -1,6 +1,9 @@
 ;;; Example graph 1 - 5 vertex 7 edges
 (defun eg1 () '((1 2) (1 4) (2 3) (3 4) (4 5) (4 1) (5 1)))
 (defun vg1 () '(1 2 3 4 5))
+(defun eg2 () '((1 2) (2 3) (2 4) (3 4) (3 6) (4 1) (4 5) (4 6) (5 1) (5 6) (6 1)))
+(defun eg2- () '((1 2) (2 3) (2 4) (3 4) (3 6) (4 1) (4 5) (4 6) (5 1) (5 6) (6 1) (6 2)))
+(defun vg2 () '(1 2 3 4 5 6))
 
 ;;; modification of 'last' - returns last element (not in list!)
 (defun llast (arr) 
@@ -24,67 +27,59 @@
 (defun add-edge (edge es)
 	(cond
 		((null es) '())
-		(t (cons (append (car es) (list edge)) (add-edge edge (cdr es))))
+		(t (cons (append (list edge) (car es)) (add-edge edge (cdr es))))
 	)
 )
 
-;;; vinit - initial vertex [vertex]
-;;; vcur - current vertex [vertex]
-;;; vs - available vertices [list]
-;;; vall - all vertices [list]
-;;; es - incident edge [edge]
-;;; eall - available edges [list]
-(defun find-cycles-next-vertex (vinit vcur vs vall es eall)
+;;; appends intermediate edge or returns last edge
+(defun fcm3 (vi vc va ei ea)
 	(cond
-		((null vs) nil)
-		((null eall) nil)
-		((null es) nil)
-		((= vcur vinit) (list es))
-		((member es eall) 
-			(add-edge	
-				es
-				(find-cycles-main-recursion
-					vinit
-					vcur
-					(remove vcur vs)
-					vall
-					nil 
-					(remove es eall)
-				)
+		((= (llast ei) vi) (list (list ei)))
+		((null va) (list '()))
+		((null ea) (list '()))
+		((not (member (llast ei) va)) (list '()))
+		((not (member ei ea)) (list '()))
+		(t
+			(add-edge
+				ei
+				(fcm1 vi (llast ei) va nil ea)
 			)
 		)
-		(t nil)
 	)
 )
 
-;;; accepts: available vertices, available edges
-;;; returns: list of cycles - '( ((1 4)(4 1)) ((1 4)(4 5)(5 1)) (...) ... )
-;;; vinit - initial vertex
-;;; vcur - current vertex
-;;; vs - available vertices
-;;; vall - all vertices
-;;; es - incident edges
-;;; eall - available edges
-(defun find-cycles-edge-recursion (vinit vcur vs vall es eall)
+;;; group in list 
+(defun fcm2 (vi vc va ei ea)
 	(cond
-		((null es) nil)
-		(t (cons
-			(find-cycles-edge-recursion vinit vcur vs vall (cdr es) eall)
-			(find-cycles-next-vertex vinit (llast (car es)) vs vall (car es) eall)
+		((= (length ei) 1) (fcm3 vi vc va (car ei) (remove ei ea)))
+		(t (append 
+				 (fcm3 vi vc va (car ei) (remove ei ea)) 
+				 (fcm2 vi vc va (cdr ei) ea)
 		))
 	)
 )
 
-(defun find-cycles-main-recursion (vinit vcur vs vall es eall)
-	(find-cycles-edge-recursion 
-		vinit ;;; initial vertex 
-		vcur ;;; current vertex
-		(remove vcur vs) ;;; available vertex - we won't step in vertex only once
-		vall ;;; all vertices
-		(find-incidents vcur eall) ;;; incident edges
-		eall ;;; available edges - we use edge only once
+;;; vi - v initial
+;;; vc - v current
+;;; va - v available
+;;; ei - e incident
+;;; ea - e available
+;;; initiate new incident edges
+(defun fcm1 (vi vc va ei ea)
+	(fcm2 vi vc (remove vc va) (find-incidents vc ea) ea)
+)
+
+;;; delete duplicates
+(defun ddc (ps)
+	(cond
+		((null ps) nil)
+		((= (caar (car ps)) (cadar (last (car ps)))) 
+		 (cons (car ps) (ddc (cdr ps))))
+		(t (ddc (cdr ps)))
 	)
 )
+
+;;; delete rotations
 
 (defun pr (a)
 	(cond
@@ -93,16 +88,26 @@
 	)
 )
 
-(defun entra ()
+(defun entrad ()
 (trace find-cycles-main-recursion)
 (trace find-cycles-edge-recursion)
 (trace find-cycles-next-vertex)
 )
 
-(defun untra ()
+(defun etrace ()
+(trace fcm1) (trace fcm2) (trace fcm3)
+)
+
+; (etrace)
+
+(defun untrad ()
 (untrace find-cycles-main-recursion)
 (untrace find-cycles-edge-recursion)
 (untrace find-cycles-next-vertex)
+)
+
+(defun utrace ()
+(untrace fcm1) (untrace fcm2) (untrace fcm3)
 )
 
 (defun testeg ()
