@@ -118,6 +118,41 @@
 	)
 )
 
+(defun itob (i)
+	(cond 
+		((= i 1) '(1))
+		(t (cons (rem i 2) (itob (floor i 2))))
+	)
+)
+
+(defun ritob (i)
+	(reverse (itob i))
+)
+
+(defun add0n (b n)
+	(cond
+		((>= (length b) n) b)
+		(t (cons 0 (add0n b (1- n))))
+	)
+)
+
+(defun unpack-by-b (l b)
+	(cond
+		((null b) '())
+		((/= (length l) (length b)) nil)
+		((= (car b) 0) (unpack-by-b (cdr l) (cdr b)))
+		(t (cons (car l) (unpack-by-b (cdr l) (cdr b))))
+	)
+)
+
+(defun unpbn (l n)
+	(unpack-by-b l (add0n (ritob n) (length l)))
+)
+
+(defun solution (vs es k)
+	; (solrec (fcm vs vs es es) k)
+)
+
 (defun pr (a)
 	(cond
 		((null a) nil)
